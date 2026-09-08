@@ -244,17 +244,25 @@ $$\mathbf{\text{Output Size} = \left\lfloor \frac{W - K + 2P}{S} \right\rfloor +
 ### 3.5 ตัวอย่างคำนวณด้วยมือจริง (โจทย์งานในชั้นเรียน)
 
 #### ข้อที่ 1: การคำนวณ Convolution $6 \times 6$ ด้วย Kernel $3 \times 3$ (จากใบงาน Week 3)
-* **Input ($6 \times 6$)**:
-  $$\begin{bmatrix} 1 & 1 & 1 & 0 & 0 & 1 \\ 0 & 1 & 1 & 0 & 1 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 \\ 0 & 0 & 1 & 1 & 1 & 0 \\ 1 & 0 & 1 & 1 & 1 & 1 \\ 0 & 0 & 1 & 0 & 1 & 1 \end{bmatrix}, \quad \text{Kernel } K = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix}$$
-* **ขนาด Output**: $W_{\text{out}} = \frac{6 - 3 + 0}{1} + 1 = \mathbf{4 \times 4}$
+* **Input ($6 \times 6$) และ Kernel ($3 \times 3$)**:
+
+  $$\text{Input} = \begin{bmatrix} 1 & 1 & 1 & 0 & 0 & 1 \\ 0 & 1 & 1 & 0 & 1 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 \\ 0 & 0 & 1 & 1 & 1 & 0 \\ 1 & 0 & 1 & 1 & 1 & 1 \\ 0 & 0 & 1 & 0 & 1 & 1 \end{bmatrix}, \quad \text{Kernel } K = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix}$$
+
+* **ขนาด Output**: 
+  $$W_{\text{out}} = \frac{6 - 3 + 0}{1} + 1 = \mathbf{4 \times 4}$$
+
 * **ผลลัพธ์ Feature Map ($4 \times 4$)**:
+
   $$\text{Feature Map} = \begin{bmatrix} 4 & 1 & 1 & 4 \\ 3 & 2 & 2 & 2 \\ 3 & 3 & 3 & 3 \\ 3 & 3 & 4 & 3 \end{bmatrix}$$
+
 * **การทำ Max Pooling ($2 \times 2, \text{Stride}=2$)**:
   * บล็อกบนซ้าย: $\max(4, 1, 3, 2) = \mathbf{4}$
   * บล็อกบนขวา: $\max(1, 4, 2, 2) = \mathbf{4}$
   * บล็อกล่างซ้าย: $\max(3, 3, 3, 3) = \mathbf{3}$
   * บล็อกล่างขวา: $\max(3, 3, 4, 3) = \mathbf{4}$
-  * **ผลลัพธ์สุดท้าย ($2 \times 2$)**: $\begin{bmatrix} 4 & 4 \\ 3 & 4 \end{bmatrix}$
+  * **ผลลัพธ์สุดท้าย ($2 \times 2$)**:
+
+  $$\text{Pooled Output} = \begin{bmatrix} 4 & 4 \\ 3 & 4 \end{bmatrix}$$
 
 ---
 
@@ -274,18 +282,19 @@ $$\mathbf{\text{Output Size} = \left\lfloor \frac{W - K + 2P}{S} \right\rfloor +
 ---
 
 #### ข้อที่ 3: การคำนวณ Forward Propagation ของ MLP (จากภาพ Screenshot ใน Class)
-* **Input**: $x_1 = 1.5, \quad x_2 = -2, \quad x_3 = 0.5$, มี $\text{bias}_{\text{in}} = 1$
+* **Input**: $x_1 = 1.5, \quad x_2 = -2.0, \quad x_3 = 0.5$, มีค่า Bias ขาเข้า $b_{\text{in}} = 1.0$
 * **Weights (Input $\to$ Hidden)**:
-  * Node 1: $\omega_{11}^1 = 0.4, \quad \omega_{12}^1 = -0.3, \quad \omega_{13}^1 = 0.7, \quad \omega_{\text{bias\_in}, 1}^1 = 0.8$
-  * Node 2: $\omega_{21}^1 = -0.6, \quad \omega_{22}^1 = 0.5, \quad \omega_{23}^1 = -0.2, \quad \omega_{\text{bias\_in}, 2}^1 = -0.4$
+  * Node 1: $w_{11} = 0.4, \quad w_{12} = -0.3, \quad w_{13} = 0.7, \quad b_1 = 0.8$
+  * Node 2: $w_{21} = -0.6, \quad w_{22} = 0.5, \quad w_{23} = -0.2, \quad b_2 = -0.4$
 * **คำนวณ Hidden Node 1 ($z_1$)**:
-  $$z_1 = (0.4 \times 1.5) + (-0.3 \times -2) + (0.7 \times 0.5) + (0.8 \times 1) = 0.6 + 0.6 + 0.35 + 0.8 = \mathbf{2.35}$$
+  $$z_1 = (0.4 \times 1.5) + (-0.3 \times -2.0) + (0.7 \times 0.5) + (0.8 \times 1.0) = 0.6 + 0.6 + 0.35 + 0.8 = \mathbf{2.35}$$
 * **คำนวณ Hidden Node 2 ($z_2$)**:
-  $$z_2 = (-0.6 \times 1.5) + (0.5 \times -2) + (-0.2 \times 0.5) + (-0.4 \times 1) = -0.9 - 1.0 - 0.1 - 0.4 = \mathbf{-2.40}$$
+  $$z_2 = (-0.6 \times 1.5) + (0.5 \times -2.0) + (-0.2 \times 0.5) + (-0.4 \times 1.0) = -0.9 - 1.0 - 0.1 - 0.4 = \mathbf{-2.40}$$
 * **Weights (Hidden $\to$ Output)**:
-  * $\text{bias}_{\text{hid}} = 1, \quad \omega_{11}^2 = 1.2, \quad \omega_{12}^2 = -0.7, \quad \omega_{\text{bias\_hid}}^2 = 0.5$
+  * Bias ชั้น Hidden $b_{\text{hid}} = 1.0$
+  * น้ำหนักเชื่อมโยง: $w_{\text{out}, 1} = 1.2, \quad w_{\text{out}, 2} = -0.7, \quad b_{\text{out}} = 0.5$
 * **คำนวณ Output Node ($z_{\text{out}}$)**:
-  $$z_{\text{out}} = (1.2 \times 2.35) + (-0.7 \times -2.40) + (0.5 \times 1) = 2.82 + 1.68 + 0.5 = \mathbf{5.00}$$
+  $$z_{\text{out}} = (1.2 \times 2.35) + (-0.7 \times -2.40) + (0.5 \times 1.0) = 2.82 + 1.68 + 0.5 = \mathbf{5.00}$$
 
 ---
 
@@ -738,27 +747,27 @@ $$\text{Input } X = \begin{bmatrix} 4 & 3 & 2 & 1 & 0 \\ 3 & 4 & 3 & 2 & 1 \\ 2 
 
 ### 📝 ข้อที่ 3: การคำนวณ Forward Propagation ของ Single Hidden Layer MLP (10 คะแนน)
 กำหนดโครงข่ายประสาทเทียมแบบ Multi-Layer Perceptron (MLP) ดังนี้:
-* **อินพุต**: $x_1 = 2.0, \quad x_2 = -1.0$, กำหนด $\text{bias}_{\text{in}} = 1.0$
+* **อินพุต**: $x_1 = 2.0, \quad x_2 = -1.0$, กำหนด Bias ขาเข้า $b_{\text{in}} = 1.0$
 * **ค่าน้ำหนักชั้น Input $\to$ Hidden**:
-  * โหนดที่ 1 ($h_1$): $\omega_{11}^1 = 0.5, \quad \omega_{12}^1 = -0.4, \quad \omega_{\text{bias},1}^1 = 0.2$
-  * โหนดที่ 2 ($h_2$): $\omega_{21}^1 = -0.8, \quad \omega_{22}^1 = 0.6, \quad \omega_{\text{bias},2}^1 = -0.5$
+  * โหนดที่ 1 ($h_1$): $w_{11} = 0.5, \quad w_{12} = -0.4, \quad b_1 = 0.2$
+  * โหนดที่ 2 ($h_2$): $w_{21} = -0.8, \quad w_{22} = 0.6, \quad b_2 = -0.5$
   * กำหนดฟังก์ชันกระตุ้นที่ Hidden Layer เป็น **ReLU** ($f(z) = \max(0, z)$)
 * **ค่าน้ำหนักชั้น Hidden $\to$ Output**:
-  * โหนดขาออก ($y$): $\omega_1^2 = 1.5, \quad \omega_2^2 = -1.0$, กำหนด $\text{bias}_{\text{hid}} = 1.0$ มีค่าน้ำหนัก $\omega_{\text{bias}}^2 = 0.4$ (ใช้ Linear Activation)
+  * โหนดขาออก ($y$): $w_1 = 1.5, \quad w_2 = -1.0$, กำหนด Bias ชั้น Hidden $b_{\text{hid}} = 1.0$ มีค่าน้ำหนัก Bias $w_b = 0.4$ (ใช้ Linear Activation)
 จงแสดงวิธีทำเพื่อหาค่าเอาต์พุต $y$ ของระบบ
 
 #### 💡 แนวทางคำตอบและวิธีทำ:
 1. **คำนวณผลรวมที่ Hidden Layer**:
    * โหนด $h_1$:
-     $$z_1 = (\omega_{11}^1 \cdot x_1) + (\omega_{12}^1 \cdot x_2) + (\omega_{\text{bias},1}^1 \cdot \text{bias}_{\text{in}}) = (0.5 \times 2.0) + (-0.4 \times -1.0) + (0.2 \times 1.0)$$
+     $$z_1 = (w_{11} \cdot x_1) + (w_{12} \cdot x_2) + (b_1 \cdot b_{\text{in}}) = (0.5 \times 2.0) + (-0.4 \times -1.0) + (0.2 \times 1.0)$$
      $$z_1 = 1.0 + 0.4 + 0.2 = \mathbf{1.6}$$
      ผ่าน $\text{ReLU} \implies a_1 = \max(0, 1.6) = \mathbf{1.6}$
    * โหนด $h_2$:
-     $$z_2 = (\omega_{21}^1 \cdot x_1) + (\omega_{22}^1 \cdot x_2) + (\omega_{\text{bias},2}^1 \cdot \text{bias}_{\text{in}}) = (-0.8 \times 2.0) + (0.6 \times -1.0) + (-0.5 \times 1.0)$$
+     $$z_2 = (w_{21} \cdot x_1) + (w_{22} \cdot x_2) + (b_2 \cdot b_{\text{in}}) = (-0.8 \times 2.0) + (0.6 \times -1.0) + (-0.5 \times 1.0)$$
      $$z_2 = -1.6 - 0.6 - 0.5 = \mathbf{-2.7}$$
      ผ่าน $\text{ReLU} \implies a_2 = \max(0, -2.7) = \mathbf{0.0}$
 2. **คำนวณค่า Output $y$**:
-   $$y = (\omega_1^2 \cdot a_1) + (\omega_2^2 \cdot a_2) + (\omega_{\text{bias}}^2 \cdot \text{bias}_{\text{hid}})$$
+   $$y = (w_1 \cdot a_1) + (w_2 \cdot a_2) + (w_b \cdot b_{\text{hid}})$$
    $$y = (1.5 \times 1.6) + (-1.0 \times 0.0) + (0.4 \times 1.0) = 2.4 + 0 + 0.4 = \mathbf{2.80}$$
 
 ---
