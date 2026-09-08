@@ -137,6 +137,64 @@
 
 ---
 
+### 2.4 การคำนวณภาระงาน AI (FLOPs, MACs, GOPs สู่ TOPS) & สถาปัตยกรรมชิปเร่งความเร็ว (AI Accelerators / Google Coral)
+
+#### 1. ความสัมพันธ์ระหว่างหน่วยวัดพลังการประมวลผล AI
+* **FLOPs (Floating Point Operations)**: จำนวนคำนวณเลขทศนิยม (เช่น การบวก, การคูณ)
+* **MAC (Multiply-Accumulate)**: การคูณแล้วบวกสะสม ($A \times B + C$) ซึ่งเป็นปฏิบัติการพื้นฐานที่สุดของ Convolution และ Matrix Multiplication
+  $$\mathbf{1\text{ MAC} = 2\text{ FLOPs}} \quad (\text{คูณ 1 ครั้ง } + \text{ บวก 1 ครั้ง})$$
+* **GOPs (Giga Operations)**: $10^9$ Operations (พันล้านปฏิบัติการต่อ 1 ครั้งการทำนาย/Inference)
+* **TOPS (Tera Operations Per Second)**: $10^{12}$ Operations ต่อวินาที (หน่วยมาตรฐานชิป AI Edge มักคิดที่ความละเอียด INT8)
+* **สูตรแปลงภาระงานโมเดลไปเป็นพลังประมวลผลที่ต้องการ (Required TOPS)**:
+  $$\mathbf{\text{Required TOPS} = \frac{\text{GOPs per Inference} \times \text{Target FPS} \times \text{Number of Streams}}{1,000}}$$
+  * *ตัวอย่าง*: รันโมเดล YOLOv8s กิน $28.6\text{ GOPs}$ ต่อภาพ ที่ความเร็ว $30\text{ FPS}$ จำนวน 2 กล้อง:
+    $$\text{Required TOPS} = \frac{28.6 \times 30 \times 2}{1,000} = \frac{1,716}{1,000} = \mathbf{1.716\text{ TOPS}}$$
+* **กฎวิศวกรรมเรื่อง Hardware Efficiency (Headroom Factor)**:
+  * ชิป AI ในทางปฏิบัติมี Hardware Utilization เพียง **$50\% - 60\%$** เนื่องจากติดขวดเรื่องการส่งผ่านข้อมูล I/O และ Memory Bandwidth
+  * ดังนั้นวิศวกรควรเลือกฮาร์ดแวร์ที่มี TOPS ตามสเปกกระดาษ **อย่างน้อย 1.5 – 2 เท่าของ Required TOPS**
+
+---
+
+#### 2. การต่อชิปประมวลผล AI เสริมเข้ากับบอร์ด Edge (AI Accelerator Expansion / Google Coral TPU)
+เมื่อบอร์ดดั้งเดิม (เช่น Raspberry Pi 4/5 หรือบอร์ดเกตเวย์อุตสาหกรรม) มีพลังประมวลผล AI จากตัว CPU เองไม่เพียงพอ (เช่น RPi 5 มี 0 TOPS NPU) เราสามารถเชื่อมต่อ **AI Accelerator / NPU เสริม** เข้าไปช่วยประมวลผลโมเดล Deep Learning ได้โดยไม่ต้องเปลี่ยนบอร์ดหลัก:
+
+```
+[ กล้อง / Sensor ] ──► [ บอร์ดหลัก: Raspberry Pi / Mini-PC ]
+                                 │
+                 (USB 3.0 / PCIe / M.2 Bus)
+                                 ▼
+                     ┌───────────────────────┐
+                     │  ชิปเร่งความเร็ว AI     │
+                     │  Google Coral TPU     │  ──► Offload คำนวณโมเดล Deep Learning
+                     │  หรือ Hailo-8 / 8L     │      (ทำ Matrix Multiply & INT8 แทน CPU)
+                     └───────────────────────┘
+```
+
+* **โมดูลชิปเร่งความเร็วยอดนิยมในวงการ Edge AI**:
+  1. **Google Coral Edge TPU (ชิป Coral จาก Google)**:
+     * **พลังประมวลผล**: **4 TOPS** (ประมวลผลที่ความละเอียด **INT8 เท่านั้น**)
+     * **กินไฟต่ำมาก**: เพียง **2W** ($0.5\text{ W/TOPS}$)
+     * **รูปแบบการต่อใช้งาน**:
+       * *Coral USB Accelerator*: เสียบผ่านพอร์ต **USB 3.0** (ต่อกับบอร์ดอะไรก็ได้ เช่น Raspberry Pi 4/5, โน้ตบุ๊ก, มินิพีซี)
+       * *Coral M.2 / PCIe Accelerator*: เสียบลงสล็อต M.2 (Key E / B+M) บนบอร์ดคอมพิวเตอร์อุตสาหกรรม ได้แบนด์วิดท์สูงและ Latency ต่ำกว่า USB
+     * **ข้อกำหนดการทำงาน**: โมเดลต้องผ่านการ Quantize เป็น **INT8 แบบสมบูรณ์ (Full Integer Quantization)** และคอมไพล์ผ่าน `edgetpu_compiler`
+     * **ข้อจำกัด**: หากโครงสร้างโมเดลมีบาง Layer ที่ Edge TPU ไม่รองรับ โมเดลจะสลับไปรันบน CPU สลับไปมา (CPU Fallback) ทำให้ Latency พุ่งสูงขึ้น
+  2. **Raspberry Pi AI HAT+ (Hailo-8 / Hailo-8L)**:
+     * ต่อผ่านพอร์ต **PCIe Gen 2/3** บนบอร์ด Raspberry Pi 5
+     * รุ่น Hailo-8L ให้พลัง **13 TOPS**, รุ่น Hailo-8 ให้พลังสูงถึง **26 TOPS**
+     * รองรับโมเดล Vision ได้หลากหลายและยืดหยุ่นกว่า Edge TPU ยุคเก่า
+  3. **Intel Neural Compute Stick 2 (NCS2 - Myriad X)**:
+     * ชิป VPU เสียบผ่าน USB 3.0 พลังประมวลผลประมาณ **1 TOPS (FP16)** ใช้กับเฟรมเวิร์ก OpenVINO
+
+* **ตารางสรุปการเปรียบเทียบการเสริมชิปเร่ง AI เข้ากับบอร์ดหลัก**:
+  | อุปกรณ์เร่งความเร็ว | อินเทอร์เฟซเชื่อมต่อ | พลังประมวลผล AI | จุดเด่น | ข้อจำกัดหลัก |
+  | :--- | :---: | :---: | :--- | :--- |
+  | **Google Coral USB** | USB 3.0 Type-C | **4 TOPS (INT8)** | เสียบปุ๊บใช้ได้ทันที กินไฟ 2W ราคาประหยัด | ต้องแปลงเป็น INT8 เท่านั้น, ไม่รองรับ FP16 |
+  | **Google Coral M.2** | M.2 (PCIe/USB) | **4 TOPS (INT8)** | เล็ก เหมาะติดในเครื่องจักร/AMR Latency ต่ำ | ต้องมีสล็อต M.2 บนบอร์ดหลัก |
+  | **Raspberry Pi AI HAT+** | PCIe 1-lane บน RPi 5 | **13 หรือ 26 TOPS** | พลังสูงมาก รองรับ YOLOv8/v11 ลื่นไหล | ใช้งานได้เฉพาะบอร์ดที่มีพอร์ต PCIe เช่น RPi 5 |
+
+---
+
 # ส่วนที่ 3: Deep Learning, CNN & การคำนวณโครงสร้างด้วยมือ
 
 *(อ้างอิง: Lab 3 [Make Convolution], Lab 4 [CNN Architecture Calculation], ภาพถ่ายกระดาน และ Screenshot ใน Class)*
@@ -839,6 +897,7 @@ $$\text{Input } X = \begin{bmatrix} 4 & 3 & 2 & 1 & 0 \\ 3 & 4 & 3 & 2 & 1 \\ 2 
    * (C) **NVIDIA Jetson AGX Orin** (200–275 TOPS, TDP 15W–60W)
    จงวิเคราะห์ว่าบอร์ดใดสามารถรองรับระบบนี้ได้อย่างมีประสิทธิภาพ พร้อมให้เหตุผลทางวิศวกรรม
 3. หากเลือกใช้บอร์ดตัวที่ผ่านเกณฑ์ แล้วนำไปติดตั้งบนหุ่นยนต์ที่ใช้แบตเตอรี่ $24\text{V}, 15\text{Ah}$ โดยบอร์ดกินไฟเฉลี่ย $40\text{W}$ (วงจรแปลงไฟมีประสิทธิภาพ $\eta = 0.85$) หุ่นยนต์ตัวนี้จะสามารถปฏิบัติงานได้ต่อเนื่องกี่ชั่วโมง?
+4. **คำถามเชิงวิศวกรรมประยุกต์**: หากองค์กรมีบอร์ด **Raspberry Pi 5** อยู่แล้วและต้องการประหยัดงบประมาณ โดยไม่อยากซื้อบอร์ด Jetson ตัวใหม่ จะสามารถ **"ต่อชิปเร่งความเร็ว AI เพิ่มเติม (Edge AI Accelerator เช่น Google Coral Edge TPU หรือ Raspberry Pi AI HAT+)"** ได้หรือไม่? จงอธิบายแนวทางการต่อและวิเคราะห์ข้อดี-ข้อจำกัดในเชิงวิศวกรรม
 
 #### 💡 แนวทางคำตอบและวิธีทำ:
 1. **คำนวณ Required TOPS แต่ละงาน**:
@@ -856,3 +915,13 @@ $$\text{Input } X = \begin{bmatrix} 4 & 3 & 2 & 1 & 0 \\ 3 & 4 & 3 & 2 & 1 \\ 2 
      $$\text{Energy (Wh)} = \text{Capacity (Ah)} \times \text{Voltage (V)} = 15\text{ Ah} \times 24\text{ V} = \mathbf{360\text{ Wh}}$$
    * ระยะเวลาที่ระบบทำงานได้:
      $$\text{Runtime} = \frac{\text{Energy (Wh)} \times \eta}{P_{\text{system}}} = \frac{360 \times 0.85}{40} = \frac{306}{40} = \mathbf{7.65\text{ ชั่วโมง}} \quad (\approx 7\text{ ชั่วโมง } 39\text{ นาที})$$
+4. **แนวทางการต่อชิป AI เสริม (Google Coral TPU vs Raspberry Pi AI HAT+)**:
+   * **สามารถทำได้จริง และเป็นแนวทางมาตรฐานในการลดต้นทุน**:
+     * **กรณีที่ 1: เสียบ Google Coral USB Accelerator (4 TOPS)**
+       * *การเชื่อมต่อ*: เสียบผ่านพอร์ต **USB 3.0** (พอร์ตสีฟ้า)
+       * *การประเมิน*: ให้พลังเพิ่มขึ้นมา 4 TOPS แต่ยังไม่พอสำหรับโหลดรวม 4.916 TOPS และต้อง Quantize เป็น INT8 เท่านั้น (หรืออาจต้องใช้ Coral 2 ตัวกระจายงานคนละกล้อง)
+     * **กรณีที่ 2: ติดตั้ง Raspberry Pi AI HAT+ (Hailo-8 / 8L)** ⭐ *(แนะนำที่สุด)*
+       * *การเชื่อมต่อ*: เสียบผ่านสล็อต **PCIe 2.0/3.0 (1-lane)** บนบอร์ด Raspberry Pi 5 โดยตรง
+       * *การประเมิน*: รุ่น Hailo-8L ให้พลัง **13 TOPS** (หรือ Hailo-8 ให้ **26 TOPS**) ซึ่ง**เกินพอสำหรับภาระงาน 4.916 TOPS อย่างสบายๆ (มี Headroom ปลอดภัย)**
+     * **ข้อดี**: ประหยัดต้นทุนกว่าบอร์ด Jetson AGX Orin หลายเท่าตัว (งบไม่เกิน 5,000–7,000 บาท เทียบกับ Orin หลักหลายหมื่น) และกินไฟต่ำมาก (บอร์ด + HAT รวมกันไม่เกิน 15W)
+     * **ข้อจำกัดทางวิศวกรรม**: โมเดลทั้งหมดต้องถูกแปลงเป็น INT8 และคอมไพล์ผ่าน Toolchain ของชิปนั้นๆ ไม่สามารถรันโมเดล FP16 หรือ Custom Layer แปลกๆ ได้สะดวกเท่า CUDA บน NVIDIA Jetson
