@@ -693,8 +693,11 @@ Output Text ◄── [5. Detokenization] ◄── [4. Linear & Softmax] ◄─
 # ✍️ คลังข้อสอบจำลอง: ชุดข้อสอบอัตนัย (ข้อเขียน 6 ข้อใหญ่)
 
 ### 📝 ข้อที่ 1: การคำนวณ Convolution และ Max Pooling ด้วยมือ (10 คะแนน)
+
 กำหนดให้อินพุตภาพแบบ Grayscale ขนาด $5 \times 5$ พิกเซล และ Kernel $K$ ขนาด $3 \times 3$ ดังต่อไปนี้:
+
 $$\text{Input } X = \begin{bmatrix} 4 & 3 & 2 & 1 & 0 \\ 3 & 4 & 3 & 2 & 1 \\ 2 & 3 & 5 & 3 & 2 \\ 1 & 2 & 3 & 4 & 3 \\ 0 & 1 & 2 & 3 & 4 \end{bmatrix}, \quad \text{Kernel } K = \begin{bmatrix} 1 & 0 & -1 \\ 0 & 1 & 0 \\ -1 & 0 & 1 \end{bmatrix}$$
+
 โดยกำหนดให้ไม่มีการเติมขอบ (Padding $P=0$) และเลื่อนสแกนทีละ 1 พิกเซล (Stride $S=1$)
 1. จงแสดงการคำนวณหาขนาดมิติของ Feature Map ขาออก
 2. จงแสดงวิธีคำนวณหาค่าพิกเซลของ Feature Map ที่ตำแหน่ง $(1,1), (1,2)$ และ $(2,2)$
@@ -702,18 +705,29 @@ $$\text{Input } X = \begin{bmatrix} 4 & 3 & 2 & 1 & 0 \\ 3 & 4 & 3 & 2 & 1 \\ 2 
 
 #### 💡 แนวทางคำตอบและวิธีทำ:
 1. **คำนวณขนาด Feature Map**:
+
    $$W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1 = \frac{5 - 3 + 0}{1} + 1 = \mathbf{3 \times 3}$$
+
 2. **คำนวณค่าตำแหน่งพิกเซล (Element-wise Multiplication & Sum)**:
+
    * **ตำแหน่ง $(1,1)$**: ครอบแถวที่ 1–3 และคอลัมน์ที่ 1–3:
+
      $$\text{Sub-matrix} = \begin{bmatrix} 4 & 3 & 2 \\ 3 & 4 & 3 \\ 2 & 3 & 5 \end{bmatrix}$$
-     $$\text{Value} = (4\cdot1) + (3\cdot0) + (2\cdot(-1)) + (3\cdot0) + (4\cdot1) + (3\cdot0) + (2\cdot(-1)) + (3\cdot0) + (5\cdot1)$$
-     $$\text{Value} = 4 - 2 + 4 - 2 + 5 = \mathbf{9}$$
+
+     $$\text{Value} = (4\cdot1) + (3\cdot0) + (2\cdot(-1)) + (3\cdot0) + (4\cdot1) + (3\cdot0) + (2\cdot(-1)) + (3\cdot0) + (5\cdot1) = 4 - 2 + 4 - 2 + 5 = \mathbf{9}$$
+
    * **ตำแหน่ง $(1,2)$**: ครอบแถวที่ 1–3 และคอลัมน์ที่ 2–4:
+
      $$\text{Sub-matrix} = \begin{bmatrix} 3 & 2 & 1 \\ 4 & 3 & 2 \\ 3 & 5 & 3 \end{bmatrix}$$
+
      $$\text{Value} = (3\cdot1) + (1\cdot(-1)) + (3\cdot1) + (3\cdot(-1)) + (3\cdot1) = 3 - 1 + 3 - 3 + 3 = \mathbf{5}$$
+
    * **ตำแหน่ง $(2,2)$**: ครอบแถวที่ 2–4 และคอลัมน์ที่ 2–4:
+
      $$\text{Sub-matrix} = \begin{bmatrix} 4 & 3 & 2 \\ 3 & 5 & 3 \\ 2 & 3 & 4 \end{bmatrix}$$
+
      $$\text{Value} = (4\cdot1) + (2\cdot(-1)) + (5\cdot1) + (2\cdot(-1)) + (4\cdot1) = 4 - 2 + 5 - 2 + 4 = \mathbf{9}$$
+
 3. **การทำ Max Pooling ($2 \times 2, S=1$) ที่ตำแหน่ง $(1,1)$**:
    * นำ 4 ค่าแรกของบล็อก $2 \times 2$ บนซ้าย ได้แก่ ตำแหน่ง $(1,1)=9, (1,2)=5$ และสมมติค่า $(2,1), (2,2)=9$:
    * ค่าสูงสุดในบล็อก: $\max(9, 5, \text{val}_{21}, 9) = \mathbf{9}$
