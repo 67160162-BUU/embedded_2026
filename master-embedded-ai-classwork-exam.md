@@ -244,25 +244,28 @@ $$\mathbf{\text{Output Size} = \left\lfloor \frac{W - K + 2P}{S} \right\rfloor +
 ### 3.5 ตัวอย่างคำนวณด้วยมือจริง (โจทย์งานในชั้นเรียน)
 
 #### ข้อที่ 1: การคำนวณ Convolution $6 \times 6$ ด้วย Kernel $3 \times 3$ (จากใบงาน Week 3)
-* **Input ($6 \times 6$) และ Kernel ($3 \times 3$)**:
 
-  $$\text{Input} = \begin{bmatrix} 1 & 1 & 1 & 0 & 0 & 1 \\ 0 & 1 & 1 & 0 & 1 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 \\ 0 & 0 & 1 & 1 & 1 & 0 \\ 1 & 0 & 1 & 1 & 1 & 1 \\ 0 & 0 & 1 & 0 & 1 & 1 \end{bmatrix}, \quad \text{Kernel } K = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix}$$
+**Input ($6 \times 6$) และ Kernel ($3 \times 3$)**:
 
-* **ขนาด Output**: 
-  $$W_{\text{out}} = \frac{6 - 3 + 0}{1} + 1 = \mathbf{4 \times 4}$$
+$$\text{Input} = \begin{bmatrix} 1 & 1 & 1 & 0 & 0 & 1 \\ 0 & 1 & 1 & 0 & 1 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 \\ 0 & 0 & 1 & 1 & 1 & 0 \\ 1 & 0 & 1 & 1 & 1 & 1 \\ 0 & 0 & 1 & 0 & 1 & 1 \end{bmatrix}, \quad \text{Kernel } K = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix}$$
 
-* **ผลลัพธ์ Feature Map ($4 \times 4$)**:
+**ขนาดของ Output Feature Map**:
 
-  $$\text{Feature Map} = \begin{bmatrix} 4 & 1 & 1 & 4 \\ 3 & 2 & 2 & 2 \\ 3 & 3 & 3 & 3 \\ 3 & 3 & 4 & 3 \end{bmatrix}$$
+$$W_{\text{out}} = \frac{6 - 3 + 0}{1} + 1 = \mathbf{4 \times 4}$$
 
-* **การทำ Max Pooling ($2 \times 2, \text{Stride}=2$)**:
-  * บล็อกบนซ้าย: $\max(4, 1, 3, 2) = \mathbf{4}$
-  * บล็อกบนขวา: $\max(1, 4, 2, 2) = \mathbf{4}$
-  * บล็อกล่างซ้าย: $\max(3, 3, 3, 3) = \mathbf{3}$
-  * บล็อกล่างขวา: $\max(3, 3, 4, 3) = \mathbf{4}$
-  * **ผลลัพธ์สุดท้าย ($2 \times 2$)**:
+**ผลลัพธ์ Feature Map ($4 \times 4$)**:
 
-  $$\text{Pooled Output} = \begin{bmatrix} 4 & 4 \\ 3 & 4 \end{bmatrix}$$
+$$\text{Feature Map} = \begin{bmatrix} 4 & 1 & 1 & 4 \\ 3 & 2 & 2 & 2 \\ 3 & 3 & 3 & 3 \\ 3 & 3 & 4 & 3 \end{bmatrix}$$
+
+**การทำ Max Pooling ($2 \times 2, \text{Stride}=2$)**:
+* บล็อกบนซ้าย: $\max(4, 1, 3, 2) = \mathbf{4}$
+* บล็อกบนขวา: $\max(1, 4, 2, 2) = \mathbf{4}$
+* บล็อกล่างซ้าย: $\max(3, 3, 3, 3) = \mathbf{3}$
+* บล็อกล่างขวา: $\max(3, 3, 4, 3) = \mathbf{4}$
+
+**ผลลัพธ์สุดท้าย ($2 \times 2$)**:
+
+$$\text{Pooled Output} = \begin{bmatrix} 4 & 4 \\ 3 & 4 \end{bmatrix}$$
 
 ---
 
